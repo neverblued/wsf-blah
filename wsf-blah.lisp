@@ -4,17 +4,21 @@
 
 (in-package #:wsf)
 
+(defgeneric server-default-language (blah-server))
+(defgeneric server-dictionary-pathname (blah-server))
+
 (defclass blah-server (docroot-server)
-  ((dictionary-pathname :initarg :dictionary-pathname
-                        :initform "data/dictionary.lisp"
-                        :accessor server-dictionary-pathname)
-   (default-language :initarg :default-language
+  ((default-language :initarg :default-language
                      :initform :*
                      :accessor server-default-language)))
 
 (defmethod respond ((server blah-server) request)
-  (blah:with-dictionary (from-docroot server (server-dictionary-pathname server))
-    (blah:with-language (server-default-language server)
+  (blah:with-dictionary (server-dictionary-pathname server)
+    (blah:in-language (server-default-language server)
       (call-next-method))))
+
+(defmethod server-dictionary-pathname ((server blah-server))
+  (with-server server
+    (docroot/ (format nil (server-data-pathname-format server) "dictionary"))))
 
 (export '(blah-server server-dictionary-pathname server-default-language))
